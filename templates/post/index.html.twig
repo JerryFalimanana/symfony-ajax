@@ -17,9 +17,52 @@
                         <h3>{{post.title}}</h3>
                         <p>{{post.introduction}}</p>
                         <a href="#" class="btn btn-primary">Lire la suite</a>
+                        <a href="{{ path("post_like", {'id': post.id}) }}" class="btn btn-link js-like">
+                            {% if app.user and post.isLikedByUser(app.user) %}
+                                <i class="fas fa-thumbs-up"></i>
+                            {% else %}
+                                <i class="far fa-thumbs-up"></i>
+                            {% endif %}
+                            <span class="js-likes">{{ post.likes | length }}</span>
+                            <span class="js-label">J'aime</span>
+                        </a>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        function onClickBtnLike(event) {
+            event.preventDefault();
+
+            const url = this.href;
+            const spanCount = this.querySelector('span.js-likes');
+            const icone = this.querySelector('i');
+
+            axios.get(url).then(function(response) {
+                spanCount.textContent = response.data.likes;
+
+                if (icone.classList.contains('fas')) {
+                    icone.classList.replace('fas', 'far');
+                }
+                else {
+                    icone.classList.replace('far', 'fas');
+                }
+            }).catch(function(error) {
+                if (error.response.status === 403) {
+                    window.alert("Vous ne pouvez pas liker un article si vous n'êtes pas connecté")
+                } else {
+                    window.alert("Une erreur s'est produite, réessayez plus tard");
+                }
+            });
+        }
+
+        document.querySelectorAll('a.js-like').forEach(function(link) {
+            link.addEventListener('click', onClickBtnLike);
+        })
+    </script>
 {% endblock %}
